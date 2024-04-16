@@ -116,6 +116,7 @@ public class AnimationAndMovementController : MonoBehaviour
     // * Update is called once per frame
     void Update()
     {
+        handleGravity();
         handleRotation();
         handleAnimation();
         if (isRunPressed)

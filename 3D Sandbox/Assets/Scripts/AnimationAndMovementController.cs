@@ -12,6 +12,7 @@ public class AnimationAndMovementController : MonoBehaviour
 
     int isWalkingHash;
     int isRunningHash;
+    int isJumpingHash;
 
     // * variables for input value
     Vector2 currentMovementInput;
@@ -35,6 +36,7 @@ public class AnimationAndMovementController : MonoBehaviour
     float maxJumpHeight = 4.0f;
     float maxJumpTime = 0.75f;
     bool isJumping = false;
+    bool isJumpAnimating = false;
 
 
     // * Awake is called when the script instance is being loaded before Start
@@ -47,6 +49,7 @@ public class AnimationAndMovementController : MonoBehaviour
 
         isWalkingHash = Animator.StringToHash("isWalking");
         isRunningHash = Animator.StringToHash("isRunning");
+        isJumpingHash = Animator.StringToHash("isJumping");
 
         playerInput.CharacterControls.Move.started += onMovementInput;
         playerInput.CharacterControls.Move.canceled += onMovementInput;
@@ -71,7 +74,9 @@ public class AnimationAndMovementController : MonoBehaviour
     {
         if (!isJumping && characterController.isGrounded && isJumpPressed)
         {
+            animator.SetBool(isJumpingHash, true);
             isJumping = true;
+            isJumpAnimating = true;
             currentMovement.y = initialJumpVelocity * .5f;
             currentRunMovement.y = initialJumpVelocity * .5f;
         }
@@ -123,6 +128,7 @@ public class AnimationAndMovementController : MonoBehaviour
     {
         bool isWalking = animator.GetBool(isWalkingHash);
         bool isRunning = animator.GetBool(isRunningHash);
+        bool isJumping = animator.GetBool(isJumpingHash);
 
         if (isMovementPressed && !isWalking)
         {
@@ -145,11 +151,16 @@ public class AnimationAndMovementController : MonoBehaviour
 
     void handleGravity()
     {
-        bool isFalling = currentMovement.y <= 0.0f;
+        bool isFalling = currentMovement.y <= 0.0f || !isJumpPressed;
         float fallMultiplier = 2.0f;
 
         if (characterController.isGrounded)
         {
+            if (isJumpAnimating)
+            {
+                animator.SetBool(isJumpingHash, false);
+                isJumpAnimating = false;
+            }
             currentMovement.y = groundedGravity;
             currentRunMovement.y = groundedGravity;
         } 
@@ -157,7 +168,7 @@ public class AnimationAndMovementController : MonoBehaviour
         {
             float previousYVelocity = currentMovement.y;
             float newYVelocity = currentMovement.y + (gravity * fallMultiplier * Time.deltaTime);
-            float nextYVelocity = (previousYVelocity + newYVelocity) * .5f;
+            float nextYVelocity = Mathf.Max((previousYVelocity + newYVelocity) * .5f, -20.0f);
             currentMovement.y = nextYVelocity;
             currentRunMovement.y = nextYVelocity;
         }

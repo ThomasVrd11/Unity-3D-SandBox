@@ -148,16 +148,31 @@ public class AnimationAndMovementController : MonoBehaviour
             
         }
     }
+    Vector2 RotateInput(Vector2 input, float degrees)
+    {
+        float radians = degrees * Mathf.Deg2Rad;
+        float sin = Mathf.Sin(radians);
+        float cos = Mathf.Cos(radians);
 
-    void onMovementInput (InputAction.CallbackContext context)
+        float tx = input.x;
+        float ty = input.y;
+        input.x = (cos * tx) - (sin * ty);
+        input.y = (sin * tx) + (cos * ty);
+
+        return input;
+    }
+
+        void onMovementInput(InputAction.CallbackContext context)
     {
         currentMovementInput = context.ReadValue<Vector2>();
-        currentMovement.x = currentMovementInput.x * 2.5f;
-        currentMovement.z = currentMovementInput.y * 2.5f;
-        currentRunMovement.x = currentMovementInput.x * runMultiplier;
-        currentRunMovement.z = currentMovementInput.y * runMultiplier;
-        isMovementPressed = currentMovementInput.x != zero || currentMovementInput.y != zero;
+        Vector2 isoMovementInput = RotateInput(currentMovementInput, -45);
+        currentMovement.x = isoMovementInput.x;
+        currentMovement.z = isoMovementInput.y;
+        currentRunMovement.x = isoMovementInput.x * runMultiplier;
+        currentRunMovement.z = isoMovementInput.y * runMultiplier;
+        isMovementPressed = currentMovementInput.x != 0 || currentMovementInput.y != 0;
     }
+    
     void handleAnimation()
     {
         bool isWalking = animator.GetBool(isWalkingHash);
